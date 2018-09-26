@@ -1,0 +1,11 @@
+{
+  "editor.formatOnSave": true,
+
+  // Javascript
+  "eslint.validate": ["javascript", "typescript"],
+  "prettier.eslintIntegration": true,
+  "prettier.singleQuote": true,
+  // 波かっこの前後にスペースを入れない
+  "prettier.bracketSpacing": false,
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false
+}

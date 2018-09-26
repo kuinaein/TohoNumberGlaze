@@ -1,0 +1,23 @@
+{
+  "name": "toho_number_glaze.kuinaein.net",
+  "displayName": "TohoNumberGlaze",
+  "version": "1.0.0",
+  "description": "東方ナンバーグレイズ",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kuina <kuinanein@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "cordova-android": "^7.0.0",
+    "cordova-plugin-whitelist": "^1.3.3"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-whitelist": {}
+    },
+    "platforms": [
+      "android"
+    ]
+  }
+}

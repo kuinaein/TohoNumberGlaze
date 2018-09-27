@@ -44,10 +44,25 @@ export class NumberPlaceSquare {
   }
 
   /**
+   * @return {boolean}
+   */
+  isFixed() {
+    return this.model.isFixed(this.rowIndex, this.colIndex);
+  }
+
+  /**
+   * @param {number|null} value
+   */
+  setValue(value) {
+    this.model.set(this.rowIndex, this.colIndex, value);
+    this.letter.setString(value ? value : '');
+  }
+
+  /**
    * @return {cc.Node}
    */
   createSquareBg() {
-    const length = cc.winSize.height * 0.1;
+    const length = cc.winSize.height * 0.09;
 
     const sqBg = new cc.DrawNode();
     sqBg.setContentSize(cc.size(length, length));
@@ -80,7 +95,7 @@ export class NumberPlaceSquare {
     sqBg.setPosition(
         cc.p(
             cc.winSize.width * 0.05 + length * this.colIndex,
-            cc.winSize.height * 0.95 - length * this.rowIndex
+            cc.winSize.height * 0.9 - length * this.rowIndex
         )
     );
     return sqBg;

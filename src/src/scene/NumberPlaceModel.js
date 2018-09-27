@@ -8,6 +8,7 @@ export class NumberPlaceModel {
    */
   constructor(difficulty) {
     this.initial = sudoku.generate(difficulty);
+    /** @type {string} */
     this.current = this.initial;
   }
 
@@ -19,11 +20,32 @@ export class NumberPlaceModel {
   /**
    * @param {number} rowIndex
    * @param {number} colIndex
+   * @return {number}
+   */
+  calcPos(rowIndex, colIndex) {
+    return 9 * rowIndex + colIndex;
+  }
+
+  /**
+   * @param {number} rowIndex
+   * @param {number} colIndex
    * @return {?number}
    */
   get(rowIndex, colIndex) {
-    const ch = this.current.charAt(9 * rowIndex + colIndex);
+    const ch = this.current.charAt(this.calcPos(rowIndex, colIndex));
     return '.' === ch ? null : parseInt(ch);
+  }
+
+  /**
+   * @param {number} rowIndex
+   * @param {number} colIndex
+   * @param {number|null} value
+   */
+  set(rowIndex, colIndex, value) {
+    const pos = this.calcPos(rowIndex, colIndex);
+    const ch = value ? '' + value : '.';
+    this.current =
+      this.current.substring(0, pos) + ch + this.current.substring(pos + 1);
   }
 
   /**
@@ -34,7 +56,7 @@ export class NumberPlaceModel {
    * @return {boolean}
    */
   isFixed(rowIndex, colIndex) {
-    const ch = this.initial.charAt(9 * rowIndex + colIndex);
+    const ch = this.initial.charAt(this.calcPos(rowIndex, colIndex));
     return '.' !== ch;
   }
 }

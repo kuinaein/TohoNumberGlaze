@@ -1,4 +1,4 @@
-import {createSimpleScene} from '@/util/cocos2d-util';
+import {NumberPlaceScene} from '@/scene/NumberPlaceScene';
 
 /** @param {*} err */
 function knDefaultErrorHandler(err) {
@@ -12,5 +12,4 @@ window.addEventListener('error', knDefaultErrorHandler);
 window.addEventListener('unhandledrejection', knDefaultErrorHandler);
 
 window.tng = window.tng || {};
-
-window.tng.MainScene = createSimpleScene({});
+window.tng.MainScene = NumberPlaceScene;

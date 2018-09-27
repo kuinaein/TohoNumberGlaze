@@ -1,0 +1,3 @@
+[submodule "src/src/typings/cocos2d"]
+	path = src/src/typings/cocos2d
+	url = git@github.com:kuinaein/cocos2d-typescript-definitions.git

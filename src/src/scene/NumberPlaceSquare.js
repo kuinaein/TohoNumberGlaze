@@ -27,7 +27,9 @@ export class NumberPlaceSquare {
         length * 0.5
     );
     letter.setFontFillColor(
-      model.isFixed(rowIndex, colIndex) ? cc.color.RED : cc.color.BLACK
+      model.isFixed(rowIndex, colIndex)
+        ? cc.color(201, 23, 30) // 深緋
+        : cc.color.BLACK
     );
     letter.setAnchorPoint(cc.p(0.5, 0.5));
     letter.setPosition(length / 2, length / 2);
@@ -52,10 +54,14 @@ export class NumberPlaceSquare {
 
   /**
    * @param {number|null} value
+   * @return {boolean} 変更できた場合はtrue. 操作ミスの場合はfalse
    */
   setValue(value) {
-    this.model.set(this.rowIndex, this.colIndex, value);
-    this.letter.setString(value ? value : '');
+    const result = this.model.set(this.rowIndex, this.colIndex, value);
+    if (result) {
+      this.letter.setString(value ? value : '');
+    }
+    return result;
   }
 
   /**

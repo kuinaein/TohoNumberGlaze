@@ -17,6 +17,11 @@ export class NumberPlaceModel {
     sudoku.print_board(this.current);
   }
 
+  /** @return {boolean} */
+  isSolved() {
+    return this.current === sudoku.solve(this.current);
+  }
+
   /**
    * @param {number} rowIndex
    * @param {number} colIndex
@@ -40,16 +45,23 @@ export class NumberPlaceModel {
    * @param {number} rowIndex
    * @param {number} colIndex
    * @param {number|null} value
+   * @return {boolean} 変更できたかどうか. falseの場合は「ハズレ」
    */
   set(rowIndex, colIndex, value) {
     const pos = this.calcPos(rowIndex, colIndex);
     const ch = value ? '' + value : '.';
-    this.current =
+    const modified =
       this.current.substring(0, pos) + ch + this.current.substring(pos + 1);
+    if (sudoku.solve(modified)) {
+      this.current = modified;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
-   * あるマス目の値が最初からt設定されていたかどうかを返す
+   * あるマス目の値が最初から設定されていたかどうかを返す
    *
    * @param {number} rowIndex
    * @param {number} colIndex

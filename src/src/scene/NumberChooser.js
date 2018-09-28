@@ -10,7 +10,7 @@ export class NumberChooser {
    */
   constructor(baseLength) {
     this.baseLength = baseLength;
-    this.radius = baseLength * 0.4;
+    this.radius = baseLength * 0.5;
     /** @type {NumberPlaceSquare|null} */
     this.target = null;
 
@@ -65,8 +65,10 @@ export class NumberChooser {
   /**
    * @param {cc.Touch} touch
    * @param {cc.EventTouch} event
+   * @return {boolean} ユーザー操作ミスの場合 false
    */
   handleOnTouch(touch, event) {
+    let result = true;
     const node = this.getNode();
 
     let nearest = -1;
@@ -85,10 +87,11 @@ export class NumberChooser {
     }
 
     if (-1 !== nearest) {
-      this.target.setValue(1 + nearest);
+      result = this.target.setValue(1 + nearest);
     }
 
     this.target = null;
     node.setVisible(false);
+    return result;
   }
 }

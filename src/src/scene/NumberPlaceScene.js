@@ -3,8 +3,15 @@ import {NumberPlaceModel} from '@/scene/NumberPlaceModel';
 import {NumberPlaceSquare} from '@/scene/NumberPlaceSquare';
 import {NumberChooser} from '@/scene/NumberChooser';
 
+const NumberPlaceMode = {
+  PLAYING_IDLE: 'PLAYING_IDLE',
+  PLAYING_BUSY: 'PLAYING_BUSY',
+  STAGE_END: 'STAGE_END',
+};
+
 /**
  * @typedef NumberPlaceLayerProps
+ * @property {string} mode
  * @property {NumberPlaceModel} model
  * @property {NumberPlaceSquare[][]} squares
  * @property {NumberChooser} chooser
@@ -15,8 +22,8 @@ const numberPlaceLayerProps = {
   ctor() {
     this._super();
 
+    this.mode = NumberPlaceMode.PLAYING_IDLE;
     this.model = new NumberPlaceModel('easy'); // FIXME
-    this.model.printBoard();
 
     /** @type {NumberPlaceSquare[][]} */
     const squares = [];
@@ -51,25 +58,83 @@ const numberPlaceLayerProps = {
    * @return {boolean}
    */
   onTouchBegan(touch, event) {
+    if (NumberPlaceMode.PLAYING_IDLE !== this.mode) {
+      return false;
+    }
+
     if (this.chooser.isVisible()) {
-      this.chooser.handleOnTouch(touch, event);
+      const opSuccess = this.chooser.handleOnTouch(touch, event);
+      if (!opSuccess) {
+        this.rockLayer();
+      } else if (this.model.isSolved()) {
+        this.onSolved();
+      }
     } else {
-      SQ_LOOP: for (const row of this.squares) {
-        for (const sq of row) {
-          const box = sq.getNode().getBoundingBoxToWorld();
-          const pt = touch.getLocation();
-          if (cc.rectContainsPoint(box, pt)) {
-            if (sq.isFixed()) {
-              console.error('変更できないよ！'); // FIXME
-            } else {
-              this.chooser.show(sq);
-            }
-            break SQ_LOOP;
+      this.showChooser(touch);
+    }
+    return false;
+  },
+
+  /**
+   * @param {cc.Touch} touch
+   */
+  showChooser(touch) {
+    SQ_LOOP: for (const row of this.squares) {
+      for (const sq of row) {
+        const box = sq.getNode().getBoundingBoxToWorld();
+        const pt = touch.getLocation();
+        if (cc.rectContainsPoint(box, pt)) {
+          if (sq.isFixed()) {
+            this.rockLayer();
+          } else {
+            this.chooser.show(sq);
           }
+          break SQ_LOOP;
         }
       }
     }
-    return false;
+  },
+
+  onSolved() {
+    this.mode = NumberPlaceMode.STAGE_END;
+
+    const congrats = new cc.LabelTTF(
+        'CLEAR!!',
+        'sans-serif',
+        cc.winSize.height * 0.2
+    );
+
+    const box = congrats.getContentSize();
+    const congratsBg = new cc.LayerColor(
+        cc.color(0, 0, 0, 192),
+        box.width * 1.2,
+        box.height
+    );
+    congratsBg.ignoreAnchorPointForPosition(false);
+    congratsBg.setAnchorPoint(0.5, 0.5);
+    congratsBg.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
+    this.addChild(congratsBg);
+
+    const bgBox = congratsBg.getContentSize();
+    congrats.setPosition(bgBox.width / 2, bgBox.height / 2);
+    congratsBg.addChild(congrats);
+  },
+
+  /** 画面を揺らす */
+  rockLayer() {
+    // TODO 効果音入れる
+    this.mode = NumberPlaceMode.PLAYING_BUSY;
+    const dist = cc.winSize.width * 0.01;
+    this.runAction(
+        cc.sequence([
+          cc.moveTo(0.05, cc.p(-dist, 0)),
+          cc.moveTo(0.05, cc.p(dist, 0)),
+          cc.moveTo(0.05, cc.p(0, 0)),
+          cc.callFunc(() => {
+            this.mode = NumberPlaceMode.PLAYING_IDLE;
+          }),
+        ])
+    );
   },
 };
 

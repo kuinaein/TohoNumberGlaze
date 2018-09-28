@@ -95,7 +95,8 @@
 
 import './resource';
 
-cc.game.onStart = function() {
+/** @this {cc.game} */
+function onGameStart() {
   let sys = cc.sys;
   if (!sys.isNative && document.getElementById('cocosLoading')) {
     // If referenced loading.js, please remove it
@@ -137,5 +138,7 @@ cc.game.onStart = function() {
       },
       this
   );
-};
+}
+
+cc.game.onStart = onGameStart;
 cc.game.run();

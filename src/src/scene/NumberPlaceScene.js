@@ -79,7 +79,7 @@ const numberPlaceLayerProps = {
    * @param {cc.Touch} touch
    */
   showChooser(touch) {
-    SQ_LOOP: for (const row of this.squares) {
+    for (const row of this.squares) {
       for (const sq of row) {
         const box = sq.getNode().getBoundingBoxToWorld();
         const pt = touch.getLocation();
@@ -89,7 +89,7 @@ const numberPlaceLayerProps = {
           } else {
             this.chooser.show(sq);
           }
-          break SQ_LOOP;
+          return;
         }
       }
     }

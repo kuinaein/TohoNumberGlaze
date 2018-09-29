@@ -1,4 +1,8 @@
 export const RESOURCE_MAP = {
+  SD_Chillno_json: 'res/erl/chillno/chillno.json',
+  SD_Chillno_atlas: 'res/erl/chillno/chillno.atlas',
+  SD_Chillno_png: 'res/erl/chillno/chillno.png',
+  SD_Chillno2_png: 'res/erl/chillno/chillno2.png',
 };
 
 if (!window.gResources) {

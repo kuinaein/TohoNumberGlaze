@@ -1,4 +1,6 @@
 import {createSimpleScene} from '@/util/cocos2d-util';
+import {RESOURCE_MAP} from '@/resource';
+
 import {NumberPlaceModel} from '@/scene/NumberPlaceModel';
 import {NumberPlaceSquare} from '@/scene/NumberPlaceSquare';
 import {NumberChooser} from '@/scene/NumberChooser';
@@ -15,6 +17,7 @@ const NumberPlaceMode = {
  * @property {NumberPlaceModel} model
  * @property {NumberPlaceSquare[][]} squares
  * @property {NumberChooser} chooser
+ * @property {sp.SkeletonAnimation} playerCharacter
  */
 
 /** @type {cc.Layer & NumberPlaceLayerProps} */
@@ -24,7 +27,32 @@ const numberPlaceLayerProps = {
 
     this.mode = NumberPlaceMode.PLAYING_IDLE;
     this.model = new NumberPlaceModel('easy'); // FIXME
+    this.initSquares();
 
+    const playerCharacter = new sp.SkeletonAnimation(
+        RESOURCE_MAP.SD_Chillno_json,
+        RESOURCE_MAP.SD_Chillno_atlas,
+        0.2
+    );
+    playerCharacter.setPosition(
+        cc.winSize.width * 0.8,
+        cc.winSize.height * 0.3
+    );
+    playerCharacter.setAnimation(0, 'float', true);
+    this.addChild(playerCharacter);
+    this.playerCharacter = playerCharacter;
+
+    const touchListener = {
+      event: cc.EventListener.TOUCH_ONE_BY_ONE,
+      swallowTouches: false,
+      onTouchBegan: this.onTouchBegan.bind(this),
+    };
+    cc.eventManager.addListener(touchListener, this);
+
+    this.scheduleUpdate();
+  },
+
+  initSquares() {
     /** @type {NumberPlaceSquare[][]} */
     const squares = [];
     for (let r = 0; r < 9; ++r) {
@@ -42,14 +70,6 @@ const numberPlaceLayerProps = {
         this.squares[0][0].getNode().getBoundingBoxToWorld().width
     );
     this.addChild(this.chooser.getNode());
-
-    const touchListener = {
-      event: cc.EventListener.TOUCH_ONE_BY_ONE,
-      swallowTouches: false,
-      onTouchBegan: this.onTouchBegan.bind(this),
-      // onTouchEnded: this.onTouchEnded.bind(this),
-    };
-    cc.eventManager.addListener(touchListener, this);
   },
 
   /**

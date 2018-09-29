@@ -9,7 +9,6 @@
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.d.ts",
     "lint:fix": "cross-env NODE_ENV=development eslint . --ext .js,.d.ts --fix"
   },
-  "dependencies": {},
   "browserslist": [
     "> 1%",
     "last 2 versions",

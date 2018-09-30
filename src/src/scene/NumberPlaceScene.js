@@ -166,6 +166,7 @@ const numberPlaceLayerProps = {
       return;
     }
 
+    let targetSq;
     const candidates = sudoku.get_candidates(board);
     const start = this.mt.random_int() % BOARD_AREA;
     for (let i = 0; i < BOARD_AREA; ++i) {
@@ -176,16 +177,22 @@ const numberPlaceLayerProps = {
         const sq = this.squares[r][c];
         if (null === sq.getValue()) {
           sq.setValue(9);
+          targetSq = sq;
           break;
         }
       }
     }
 
-    this.showCutin();
+    this.showSpell(targetSq);
   },
 
-  showCutin() {
+  /**
+   * @param {NumberPlaceSquare} targetSq
+   */
+  showSpell(targetSq) {
     this.playerCharacter.setAnimation(0, 'spell', false);
+    const FIRST_HALF_DURATION = 0.3;
+    const SECOND_HALF_DURATION = 2;
 
     const spellCardLabel = new cc.LabelTTF(
         '(9)バカ',
@@ -193,7 +200,12 @@ const numberPlaceLayerProps = {
         cc.winSize.height * 0.05
     );
     spellCardLabel.setOpacity(0);
-    spellCardLabel.runAction(cc.sequence([cc.fadeIn(0.5), cc.fadeOut(1)]));
+    spellCardLabel.runAction(
+        cc.sequence([
+          cc.fadeIn(FIRST_HALF_DURATION),
+          cc.fadeOut(SECOND_HALF_DURATION),
+        ])
+    );
 
     const spellCardLabelBg = createBgLayer(
         spellCardLabel,
@@ -206,18 +218,41 @@ const numberPlaceLayerProps = {
     );
     this.addChild(spellCardLabelBg);
 
+    const snow = new cc.Sprite(RESOURCE_MAP.Particle_snow_png);
+    snow.setScale(0.5);
+    snow.setColor(cc.color(0, 255, 255, 128));
+    snow.setPosition(this.playerCharacter.getPosition());
+    const sqBox = targetSq.getNode().getBoundingBoxToWorld();
+    snow.runAction(
+        cc.sequence([
+          cc.moveTo(
+              FIRST_HALF_DURATION,
+              sqBox.x + sqBox.width / 2,
+              sqBox.y + sqBox.height / 2
+          ),
+          cc.callFunc(() => {
+            snow.removeFromParentAndCleanup(true);
+          }),
+        ])
+    );
+    this.addChild(snow);
+
     const cutin = new cc.Sprite(RESOURCE_MAP.Cutin_Chillno_png);
     cutin.setPosition(cc.winSize.width * 0.75, 0);
     cutin.setScale(0.25);
     cutin.setOpacity(0);
     cutin.runAction(
         cc.sequence([
-          cc.spawn([cc.moveBy(0.5, 0, cc.winSize.height * 0.4), cc.fadeIn(0.5)]),
+          cc.spawn([
+            cc.moveBy(FIRST_HALF_DURATION, 0, cc.winSize.height * 0.4),
+            cc.fadeIn(FIRST_HALF_DURATION),
+          ]),
           cc.callFunc(() => {
             this.playerCharacter.setAnimation(0, 'float', true);
             this.mode = NumberPlaceMode.PLAYING_IDLE;
+            this.explodeSquare(targetSq);
           }),
-          cc.fadeOut(1),
+          cc.fadeOut(SECOND_HALF_DURATION),
           cc.callFunc(() => {
             cutin.removeFromParentAndCleanup(true);
             spellCardLabel.removeFromParentAndCleanup(true);
@@ -226,6 +261,26 @@ const numberPlaceLayerProps = {
         ])
     );
     this.addChild(cutin);
+  },
+
+  /**
+   * @param {NumberPlaceSquare} targetSq
+   */
+  explodeSquare(targetSq) {
+    const particle = new cc.ParticleExplosion();
+    particle.initWithTotalParticles(5);
+    const sqBox = targetSq.getNode().getBoundingBoxToWorld();
+    particle.setPosition(sqBox.x + sqBox.width / 2, sqBox.y + sqBox.height / 2);
+    particle.setTexture(
+        new cc.Sprite(RESOURCE_MAP.Particle_snow_png).getTexture()
+    );
+    particle.setStartColor(cc.color.WHITE);
+    particle.setStartColorVar(cc.color(255, 0, 0));
+    particle.setEndColor(cc.color.BLUE);
+    particle.setSpeed(cc.winSize.height * 0.8);
+    particle.setScale(2);
+    particle.setAutoRemoveOnFinish(true);
+    this.addChild(particle, 5);
   },
 
   /** 画面を揺らす */

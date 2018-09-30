@@ -1,12 +1,19 @@
 import MersenneTwister from 'mersenne-twister';
-import {createSimpleScene, createBgLayer} from '@/util/cocos2d-util';
-import {RESOURCE_MAP} from '@/resource';
+import {sudoku} from '@/lib/sudoku/sudoku';
 
+import {createSimpleScene, createBgLayer} from '@/util/cocos2d-util';
+
+import {SpellGauge} from '@/scene/SpellGauge';
 import {NumberPlaceModel} from '@/scene/NumberPlaceModel';
 import {NumberPlaceSquare} from '@/scene/NumberPlaceSquare';
 import {NumberChooser} from '@/scene/NumberChooser';
 import {SpellCardChooser} from '@/scene/SpellCardChooser';
-import {sudoku} from '@/lib/sudoku/sudoku';
+
+import {RESOURCE_MAP} from '@/resource';
+import {Maru9, SpellCard} from '@/character/SpellCard';
+
+// eslint-disable-next-line no-unused-vars
+const unused = SpellCard;
 
 const BOARD_WIDTH = 9;
 const BOARD_AREA = BOARD_WIDTH * BOARD_WIDTH;
@@ -22,6 +29,7 @@ const NumberPlaceMode = {
  * @property {MersenneTwister} mt
  * @property {string} mode
  * @property {NumberPlaceModel} model
+ * @property {SpellGauge} spellGauge;
  * @property {NumberPlaceSquare[][]} squares
  * @property {NumberChooser} numberChooser
  * @property {SpellCardChooser} spellCardChooser
@@ -36,8 +44,10 @@ const numberPlaceLayerProps = {
 
     this.mode = NumberPlaceMode.PLAYING_IDLE;
     this.model = new NumberPlaceModel('easy'); // FIXME
+    this.spellGauge = new SpellGauge();
+    this.addChild(this.spellGauge.getNode());
     this.initPlayerCharacter();
-    this.spellCardChooser = new SpellCardChooser();
+    this.spellCardChooser = new SpellCardChooser([new Maru9()]);
     this.addChild(this.spellCardChooser.getNode());
     this.initSquares();
 
@@ -101,8 +111,11 @@ const numberPlaceLayerProps = {
       const opSuccess = this.numberChooser.handleOnTouch(touch, event);
       if (!opSuccess) {
         this.rockLayer();
-      } else if (this.model.isSolved()) {
-        this.onSolved();
+      } else {
+        this.spellGauge.updateGauge(+1);
+        if (this.model.isSolved()) {
+          this.onSolved();
+        }
       }
       this.mode = NumberPlaceMode.PLAYING_IDLE;
       return false;
@@ -114,7 +127,7 @@ const numberPlaceLayerProps = {
     }
     const spellCard = this.spellCardChooser.handleOnTouch(touch, event);
     if (spellCard) {
-      this.castSpell();
+      this.castSpell(spellCard);
       return false;
     }
 
@@ -157,17 +170,19 @@ const numberPlaceLayerProps = {
     this.addChild(congratsBg);
   },
 
-  castSpell() {
-    const board = this.model.getCurrentBoard();
-    const numNines = board.replace(/[^9]/g, '').length;
-    if (BOARD_WIDTH === numNines) {
+  /**
+   * @param {SpellCard} spellCard
+   */
+  castSpell(spellCard) {
+    if (!this.canCastSpell(spellCard)) {
       this.rockLayer();
       this.mode = NumberPlaceMode.PLAYING_IDLE;
       return;
     }
+    this.spellGauge.updateGauge(-spellCard.getConsumption());
 
     let targetSq;
-    const candidates = sudoku.get_candidates(board);
+    const candidates = sudoku.get_candidates(this.model.getCurrentBoard());
     const start = this.mt.random_int() % BOARD_AREA;
     for (let i = 0; i < BOARD_AREA; ++i) {
       const r = Math.floor(((start + i) % BOARD_AREA) / BOARD_WIDTH);
@@ -176,26 +191,48 @@ const numberPlaceLayerProps = {
       if (0 <= cand.indexOf('9')) {
         const sq = this.squares[r][c];
         if (null === sq.getValue()) {
-          sq.setValue(9);
-          targetSq = sq;
-          break;
+          // たまに候補に出る値で解けないときがあるのでチェック
+          if (sq.setValue(9)) {
+            sq.setValue(null);
+            targetSq = sq;
+            break;
+          }
         }
       }
     }
 
-    this.showSpell(targetSq);
+    this.showSpell(spellCard, targetSq);
   },
 
   /**
+   * @param {SpellCard} spellCard
+   * @return {boolean}
+   */
+  canCastSpell(spellCard) {
+    if (spellCard.getConsumption() > this.spellGauge.getPoint()) {
+      return false;
+    }
+
+    const board = this.model.getCurrentBoard();
+    const numNines = board.replace(/[^9]/g, '').length;
+    if (BOARD_WIDTH === numNines) {
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
+   * @param {SpellCard} spellCard
    * @param {NumberPlaceSquare} targetSq
    */
-  showSpell(targetSq) {
+  showSpell(spellCard, targetSq) {
     this.playerCharacter.setAnimation(0, 'spell', false);
-    const FIRST_HALF_DURATION = 0.3;
+    const FIRST_HALF_DURATION = 0.5;
     const SECOND_HALF_DURATION = 2;
 
     const spellCardLabel = new cc.LabelTTF(
-        '(9)バカ',
+        spellCard.getName(),
         'sans-serif',
         cc.winSize.height * 0.05
     );
@@ -248,6 +285,7 @@ const numberPlaceLayerProps = {
             cc.fadeIn(FIRST_HALF_DURATION),
           ]),
           cc.callFunc(() => {
+            targetSq.setValue(9);
             this.playerCharacter.setAnimation(0, 'float', true);
             this.mode = NumberPlaceMode.PLAYING_IDLE;
             this.explodeSquare(targetSq);
@@ -268,7 +306,7 @@ const numberPlaceLayerProps = {
    */
   explodeSquare(targetSq) {
     const particle = new cc.ParticleExplosion();
-    particle.initWithTotalParticles(5);
+    particle.initWithTotalParticles(9);
     const sqBox = targetSq.getNode().getBoundingBoxToWorld();
     particle.setPosition(sqBox.x + sqBox.width / 2, sqBox.y + sqBox.height / 2);
     particle.setTexture(

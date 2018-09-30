@@ -1,12 +1,20 @@
 import {createBgLayer} from '@/util/cocos2d-util';
+import {SpellCard} from '@/character/SpellCard';
+
+// eslint-disable-next-line no-unused-vars
+const unused = SpellCard;
 
 /** @class */
 export class SpellCardChooser {
-  /** @constructor */
-  constructor() {
-    // FIXME
+  /**
+   * @param {SpellCard[]} spellCards
+   */
+  constructor(spellCards) {
+    this.spellCards = spellCards;
+
+    console.log(spellCards);
     const spellCard1 = new cc.LabelTTF(
-        '(9) バカ',
+        `${spellCards[0].getConsumptionRatio()}%:${spellCards[0].getName()}`,
         'sans-serif',
         cc.winSize.height * 0.05
     );
@@ -26,7 +34,7 @@ export class SpellCardChooser {
   /**
    * @param {cc.Touch} touch
    * @param {cc.EventTouch} event
-   * @return {*} TODO 発動したスペカの情報を返すべきだと思う
+   * @return {SpellCard|null} 選択されたスペカ
    */
   handleOnTouch(touch, event) {
     if (
@@ -35,8 +43,8 @@ export class SpellCardChooser {
           touch.getLocation()
       )
     ) {
-      return true; // FIXME
+      return this.spellCards[0];
     }
-    return false;
+    return null;
   }
 }

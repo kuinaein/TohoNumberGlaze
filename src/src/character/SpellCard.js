@@ -31,6 +31,6 @@ export class SpellCard {
 export class Maru9 extends SpellCard {
   /** @constructor */
   constructor() {
-    super(' (9) バカ', 20);
+    super(' (9) バカ', 10);
   }
 }

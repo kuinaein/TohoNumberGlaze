@@ -316,12 +316,12 @@ const numberPlaceLayerProps = {
   showSpell(spellCard, targetSq) {
     this.playerCharacter.setAnimation(0, 'spell', false);
     const FIRST_HALF_DURATION = 0.5;
-    const SECOND_HALF_DURATION = 2;
+    const SECOND_HALF_DURATION = 5;
 
     const spellCardLabel = new cc.LabelTTF(
         spellCard.getName(),
         'sans-serif',
-        cc.winSize.height * 0.05
+        cc.winSize.height * 0.08
     );
     spellCardLabel.setOpacity(0);
     spellCardLabel.runAction(
@@ -338,7 +338,7 @@ const numberPlaceLayerProps = {
     spellCardLabelBg.setAnchorPoint(0, 1);
     spellCardLabelBg.setPosition(
         cc.winSize.width * 0.55,
-        cc.winSize.height * 0.9
+        cc.winSize.height * 0.85
     );
     this.addChild(spellCardLabelBg);
 
@@ -405,7 +405,7 @@ const numberPlaceLayerProps = {
     particle.setStartColor(cc.color.WHITE);
     particle.setStartColorVar(cc.color(255, 0, 0));
     particle.setEndColor(cc.color.BLUE);
-    particle.setSpeed(cc.winSize.height * 0.8);
+    particle.setSpeed(cc.winSize.height * 0.5);
     particle.setScale(2);
     particle.setAutoRemoveOnFinish(true);
     this.addChild(particle, 5);

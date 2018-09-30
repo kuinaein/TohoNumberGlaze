@@ -134,7 +134,7 @@ function onGameStart() {
       gResources,
       function() {
         cc.director.setDisplayStats('production' !== process.env.NODE_ENV);
-        cc.director.runScene(new tng.MainScene());
+        cc.director.runScene(new tng.FirstScene());
       },
       this
   );

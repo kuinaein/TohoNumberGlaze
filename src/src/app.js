@@ -1,4 +1,4 @@
-import {NumberPlaceScene} from '@/scene/NumberPlaceScene';
+import {TitleScene} from '@/scene/TitleScene';
 
 /** @param {*} err */
 function knDefaultErrorHandler(err) {
@@ -12,4 +12,4 @@ window.addEventListener('error', knDefaultErrorHandler);
 window.addEventListener('unhandledrejection', knDefaultErrorHandler);
 
 window.tng = window.tng || {};
-window.tng.MainScene = NumberPlaceScene;
+window.tng.FirstScene = TitleScene;

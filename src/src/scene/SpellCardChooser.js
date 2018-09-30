@@ -12,7 +12,6 @@ export class SpellCardChooser {
   constructor(spellCards) {
     this.spellCards = spellCards;
 
-    console.log(spellCards);
     const spellCard1 = new cc.LabelTTF(
         `${spellCards[0].getConsumptionRatio()}%:${spellCards[0].getName()}`,
         'sans-serif',

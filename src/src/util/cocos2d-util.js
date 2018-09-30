@@ -23,15 +23,26 @@ export function createSimpleScene(layerProps, layerClass, sceneProps) {
 }
 
 /**
+ * @typedef CreateBgLayerOptions
+ * @property {number} widthRatio
+ */
+
+/**
  * 対象ノードの親として背景枠を設定し、当該親を返す
  *
  * @param {cc.Node} targetNode
  * @param {cc.Color} color
+ * @param {CreateBgLayerOptions?} opts
  * @return {cc.LayerColor}
  */
-export function createBgLayer(targetNode, color) {
+export function createBgLayer(targetNode, color, opts) {
+  opts = opts || {};
   const box = targetNode.getContentSize();
-  const bg = new cc.LayerColor(color, box.width * 1.2, box.height);
+  const bg = new cc.LayerColor(
+      color,
+      box.width * (opts.widthRatio || 1.2),
+      box.height
+  );
 
   const bgBox = bg.getContentSize();
   targetNode.setPosition(bgBox.width / 2, bgBox.height / 2);

@@ -6,6 +6,8 @@ export const RESOURCE_MAP = {
 
   Cutin_Chillno_png: 'res/cutin-chillno.png',
 
+  BG_Mari_Sensu_png: 'res/bg-mari-sensu.png',
+  Window_Green_png: 'res/window_green.png',
   Spell_Gauge_png: 'res/spell-gauge.png',
   Spell_Gauge_Full_png: 'res/spell-gauge-full.png',
 

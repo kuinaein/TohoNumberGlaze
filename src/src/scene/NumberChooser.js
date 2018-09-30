@@ -20,7 +20,7 @@ export class NumberChooser {
 
     for (let i = 0; i < 9; ++i) {
       const choice = new cc.DrawNode();
-      choice.drawDot(cc.p(0, 0), this.radius, cc.color(255, 255, 255, 192));
+      choice.drawDot(cc.p(0, 0), this.radius, cc.color(0, 0, 0, 192));
       choice.setPosition(
           cc.p(
               this.radius * 2.5 * Math.sin((Math.PI * 2 * i) / 9),
@@ -30,7 +30,7 @@ export class NumberChooser {
       baseNode.addChild(choice);
 
       const letter = new cc.LabelTTF(i + 1, 'sans-serif', this.radius * 1.5);
-      letter.setFontFillColor(cc.color.BLACK);
+      // letter.setFontFillColor(cc.color.BLACK);
       choice.addChild(letter);
     }
 
@@ -65,10 +65,10 @@ export class NumberChooser {
   /**
    * @param {cc.Touch} touch
    * @param {cc.EventTouch} event
-   * @return {boolean} ユーザー操作ミスの場合 false
+   * @return {number} ユーザー操作ミスの場合-1, キャンセルの場合0, それ以外は選択された数字
    */
   handleOnTouch(touch, event) {
-    let result = true;
+    let result = 0;
     const node = this.getNode();
 
     let nearest = -1;
@@ -87,7 +87,7 @@ export class NumberChooser {
     }
 
     if (-1 !== nearest) {
-      result = this.target.setValue(1 + nearest);
+      result = this.target.setValue(1 + nearest) ? 1 + nearest : -1;
     }
 
     this.target = null;

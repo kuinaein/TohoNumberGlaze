@@ -80,7 +80,7 @@ export class NumberPlaceSquare {
     sqBg.drawRect(
         cc.p(0, 0),
         cc.p(length, length),
-        cc.color(220, 211, 178),
+        cc.color.WHITE,
         length * 0.05,
         cc.color.GRAY
     );

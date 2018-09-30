@@ -1,4 +1,5 @@
 import MersenneTwister from 'mersenne-twister';
+import moment from 'moment';
 import {sudoku} from '@/lib/sudoku/sudoku';
 
 import {createSimpleScene, createBgLayer} from '@/util/cocos2d-util';
@@ -28,7 +29,10 @@ const NumberPlaceMode = {
  * @typedef NumberPlaceLayerProps
  * @property {MersenneTwister} mt
  * @property {string} mode
+ * @property {moment.Moment} startTime
+ * @property {moment.Moment} endTime
  * @property {NumberPlaceModel} model
+ * @property {cc.LabelTTF} timeLabel
  * @property {SpellGauge} spellGauge;
  * @property {NumberPlaceSquare[][]} squares
  * @property {NumberChooser} numberChooser
@@ -41,9 +45,10 @@ const numberPlaceLayerProps = {
   ctor() {
     this._super();
     this.mt = new MersenneTwister();
-
     this.mode = NumberPlaceMode.PLAYING_IDLE;
     this.model = new NumberPlaceModel('easy'); // FIXME
+
+    this.initBg();
     this.spellGauge = new SpellGauge();
     this.addChild(this.spellGauge.getNode());
     this.initPlayerCharacter();
@@ -57,6 +62,39 @@ const numberPlaceLayerProps = {
       onTouchBegan: this.onTouchBegan.bind(this),
     };
     cc.eventManager.addListener(touchListener, this);
+
+    this.startTime = moment();
+    this.endTime = this.startTime.clone().add(3, 'minutes');
+    this.scheduleUpdate();
+  },
+
+  initBg() {
+    const bg = new cc.Sprite(RESOURCE_MAP.BG_Mari_Sensu_png);
+    bg.setAnchorPoint(0, 0);
+    bg.setScale(cc.winSize.height / bg.getContentSize().height);
+    this.addChild(bg);
+
+    const timeFrame = new cc.Sprite(RESOURCE_MAP.Window_Green_png);
+    const timeFrameBg = createBgLayer(timeFrame, cc.color.WHITE, {
+      widthRatio: 1,
+    });
+    timeFrameBg.setScale(0.2);
+    timeFrameBg.setPosition(cc.winSize.width * 0.38, cc.winSize.height * 0.1);
+    this.addChild(timeFrameBg);
+
+    const timeLabel = new cc.LabelTTF(
+        '',
+        'sans-serif',
+        cc.winSize.height * 0.07
+    );
+    timeLabel.setFontFillColor(cc.color.BLACK);
+    const tmBox = timeFrameBg.getBoundingBoxToWorld();
+    timeLabel.setPosition(
+        tmBox.x + tmBox.width / 2,
+        tmBox.y + tmBox.height / 2
+    );
+    this.addChild(timeLabel);
+    this.timeLabel = timeLabel;
   },
 
   initSquares() {
@@ -79,6 +117,16 @@ const numberPlaceLayerProps = {
     this.addChild(this.numberChooser.getNode());
   },
 
+  getMode() {
+    return this.mode;
+  },
+
+  setMode(mode) {
+    if (NumberPlaceMode.STAGE_END !== this.getMode()) {
+      this.mode = mode;
+    }
+  },
+
   initPlayerCharacter() {
     const playerCharacter = new sp.SkeletonAnimation(
         RESOURCE_MAP.SD_Chillno_json,
@@ -96,33 +144,72 @@ const numberPlaceLayerProps = {
     this.playerCharacter = playerCharacter;
   },
 
+  update(dt) {
+    this._super(dt);
+
+    if (NumberPlaceMode.STAGE_END === this.getMode()) {
+      return;
+    }
+
+    const curTime = moment();
+    if (curTime.isAfter(this.endTime)) {
+      this.setMode(NumberPlaceMode.STAGE_END);
+      const timeOver = new cc.LabelTTF(
+          'TIME OVER...',
+          'sans-serif',
+          cc.winSize.height * 0.2
+      );
+      timeOver.setFontFillColor(cc.color(201, 23, 30)); // 深緋
+      const timeOverBg = createBgLayer(timeOver, cc.color(0, 0, 0, 192));
+      timeOverBg.ignoreAnchorPointForPosition(false);
+      timeOverBg.setPosition(cc.winSize.width / 2, cc.winSize.height);
+      timeOverBg.runAction(cc.moveBy(0.5, 0, -cc.winSize.height / 2));
+      this.addChild(timeOverBg);
+      return;
+    }
+    const diffTime = moment.duration(this.endTime.diff(curTime));
+    const m = this.padNum2(diffTime.get('m'));
+    const s = this.padNum2(diffTime.get('s'));
+    const remains = `残 ${m}:${s}`;
+    this.timeLabel.setString(remains);
+  },
+
+  padNum2(n) {
+    return ('00' + n).slice(-2);
+  },
+
   /**
    * @param {cc.Touch} touch
    * @param {cc.EventTouch} event
    * @return {boolean}
    */
   onTouchBegan(touch, event) {
-    if (NumberPlaceMode.PLAYING_IDLE !== this.mode) {
+    if (NumberPlaceMode.PLAYING_IDLE !== this.getMode()) {
       return false;
     }
-    this.mode = NumberPlaceMode.PLAYING_BUSY;
+    this.setMode(NumberPlaceMode.PLAYING_BUSY);
 
     if (this.numberChooser.isVisible()) {
-      const opSuccess = this.numberChooser.handleOnTouch(touch, event);
-      if (!opSuccess) {
-        this.rockLayer();
-      } else {
-        this.spellGauge.updateGauge(+1);
-        if (this.model.isSolved()) {
-          this.onSolved();
-        }
+      const choice = this.numberChooser.handleOnTouch(touch, event);
+      switch (choice) {
+        case -1:
+          this.rockLayer();
+          break;
+        case 0:
+          break;
+        default:
+          this.spellGauge.updateGauge(+1);
+          if (this.model.isSolved()) {
+            this.onSolved();
+          }
       }
-      this.mode = NumberPlaceMode.PLAYING_IDLE;
+
+      this.setMode(NumberPlaceMode.PLAYING_IDLE);
       return false;
     }
 
     if (this.showNumberChooser(touch)) {
-      this.mode = NumberPlaceMode.PLAYING_IDLE;
+      this.setMode(NumberPlaceMode.PLAYING_IDLE);
       return false;
     }
     const spellCard = this.spellCardChooser.handleOnTouch(touch, event);
@@ -131,7 +218,7 @@ const numberPlaceLayerProps = {
       return false;
     }
 
-    this.mode = NumberPlaceMode.PLAYING_IDLE;
+    this.setMode(NumberPlaceMode.PLAYING_IDLE);
     return false;
   },
 
@@ -158,7 +245,7 @@ const numberPlaceLayerProps = {
   },
 
   onSolved() {
-    this.mode = NumberPlaceMode.STAGE_END;
+    this.setMode(NumberPlaceMode.STAGE_END);
     const congrats = new cc.LabelTTF(
         'CLEAR!!',
         'sans-serif',
@@ -176,7 +263,7 @@ const numberPlaceLayerProps = {
   castSpell(spellCard) {
     if (!this.canCastSpell(spellCard)) {
       this.rockLayer();
-      this.mode = NumberPlaceMode.PLAYING_IDLE;
+      this.setMode(NumberPlaceMode.PLAYING_IDLE);
       return;
     }
     this.spellGauge.updateGauge(-spellCard.getConsumption());
@@ -287,8 +374,11 @@ const numberPlaceLayerProps = {
           cc.callFunc(() => {
             targetSq.setValue(9);
             this.playerCharacter.setAnimation(0, 'float', true);
-            this.mode = NumberPlaceMode.PLAYING_IDLE;
+            this.setMode(NumberPlaceMode.PLAYING_IDLE);
             this.explodeSquare(targetSq);
+            if (this.model.isSolved()) {
+              this.onSolved();
+            }
           }),
           cc.fadeOut(SECOND_HALF_DURATION),
           cc.callFunc(() => {
@@ -324,7 +414,7 @@ const numberPlaceLayerProps = {
   /** 画面を揺らす */
   rockLayer() {
     // TODO 効果音入れる
-    this.mode = NumberPlaceMode.PLAYING_BUSY;
+    this.setMode(NumberPlaceMode.PLAYING_BUSY);
     const dist = cc.winSize.width * 0.01;
     this.runAction(
         cc.sequence([
@@ -332,7 +422,7 @@ const numberPlaceLayerProps = {
           cc.moveTo(0.05, cc.p(dist, 0)),
           cc.moveTo(0.05, cc.p(0, 0)),
           cc.callFunc(() => {
-            this.mode = NumberPlaceMode.PLAYING_IDLE;
+            this.setMode(NumberPlaceMode.PLAYING_IDLE);
           }),
         ])
     );

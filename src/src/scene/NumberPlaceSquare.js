@@ -52,6 +52,11 @@ export class NumberPlaceSquare {
     return this.model.isFixed(this.rowIndex, this.colIndex);
   }
 
+  /** @return {number|null} */
+  getValue() {
+    return this.model.get(this.rowIndex, this.colIndex);
+  }
+
   /**
    * @param {number|null} value
    * @return {boolean} 変更できた場合はtrue. 操作ミスの場合はfalse

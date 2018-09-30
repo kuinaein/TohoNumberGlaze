@@ -12,6 +12,11 @@ export class NumberPlaceModel {
     this.current = this.initial;
   }
 
+  /** @return {string} */
+  getCurrentBoard() {
+    return this.current;
+  }
+
   /** */
   printBoard() {
     sudoku.print_board(this.current);

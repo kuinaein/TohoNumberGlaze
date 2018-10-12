@@ -1,7 +1,7 @@
 {
   "name": "toho_number_glaze.kuinaein.net",
   "displayName": "TohoNumberGlaze",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "東方ナンバーグレイズ",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

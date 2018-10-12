@@ -59,12 +59,17 @@ export class NumberPlaceSquare {
 
   /**
    * @param {number|null} value
+   * @param {?boolean} animation デフォルトはtrue
    * @return {boolean} 変更できた場合はtrue. 操作ミスの場合はfalse
    */
-  setValue(value) {
+  setValue(value, animation) {
     const result = this.model.set(this.rowIndex, this.colIndex, value);
     if (result) {
       this.letter.setString(value ? value : '');
+      if (animation !== false) {
+        this.letter.setOpacity(0);
+        this.letter.runAction(cc.fadeTo(0.3, 255));
+      }
     }
     return result;
   }

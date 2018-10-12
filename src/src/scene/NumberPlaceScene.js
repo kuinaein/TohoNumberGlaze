@@ -64,7 +64,8 @@ const numberPlaceLayerProps = {
     cc.eventManager.addListener(touchListener, this);
 
     this.startTime = moment();
-    this.endTime = this.startTime.clone().add(3, 'minutes');
+    // easyモードでも3分だと運ゲーになる
+    this.endTime = this.startTime.clone().add(10, 'minutes');
     this.scheduleUpdate();
   },
 
@@ -224,7 +225,7 @@ const numberPlaceLayerProps = {
 
   /**
    * @param {cc.Touch} touch
-   * @return {boolean} どれかのマスに対し選択肢を表示したかどうか. 即ちこのメソッドで処理が終わる場合true
+   * @return {boolean} どれかのマスに対し選択肢を表示したかどうか. 即ちこのメソッドでイベント処理が終わる場合true
    */
   showNumberChooser(touch) {
     for (const row of this.squares) {
@@ -279,8 +280,8 @@ const numberPlaceLayerProps = {
         const sq = this.squares[r][c];
         if (null === sq.getValue()) {
           // たまに候補に出る値で解けないときがあるのでチェック
-          if (sq.setValue(9)) {
-            sq.setValue(null);
+          if (sq.setValue(9, false)) {
+            sq.setValue(null, false);
             targetSq = sq;
             break;
           }
@@ -323,14 +324,6 @@ const numberPlaceLayerProps = {
         'sans-serif',
         cc.winSize.height * 0.08
     );
-    spellCardLabel.setOpacity(0);
-    spellCardLabel.runAction(
-        cc.sequence([
-          cc.fadeIn(FIRST_HALF_DURATION),
-          cc.fadeOut(SECOND_HALF_DURATION),
-        ])
-    );
-
     const spellCardLabelBg = createBgLayer(
         spellCardLabel,
         cc.color(0, 0, 0, 128)
@@ -340,6 +333,14 @@ const numberPlaceLayerProps = {
         cc.winSize.width * 0.55,
         cc.winSize.height * 0.85
     );
+    spellCardLabelBg.setOpacity(0);
+    spellCardLabelBg.runAction(
+        cc.sequence([
+          cc.fadeIn(FIRST_HALF_DURATION),
+          cc.fadeOut(SECOND_HALF_DURATION),
+        ])
+    );
+
     this.addChild(spellCardLabelBg);
 
     const snow = new cc.Sprite(RESOURCE_MAP.Particle_snow_png);

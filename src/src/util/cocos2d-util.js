@@ -43,6 +43,7 @@ export function createBgLayer(targetNode, color, opts) {
       box.width * (opts.widthRatio || 1.2),
       box.height
   );
+  bg.setCascadeOpacityEnabled(true);
 
   const bgBox = bg.getContentSize();
   targetNode.setPosition(bgBox.width / 2, bgBox.height / 2);
